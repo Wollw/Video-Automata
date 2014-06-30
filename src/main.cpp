@@ -24,6 +24,10 @@ Color get_color(const World &w, int x, int y, int t) {
 }
 
 void update(World &src, World &dst, Rule r) {
+    VideoWriter vw;
+    int ex = CV_FOURCC('I', 'Y', 'U', 'V');
+    vw.open("out.avi", ex, 24, src.at(0).size());
+
     int x_min = 0;
     int y_min = 0;
     int t_min = 0;
@@ -36,17 +40,21 @@ void update(World &src, World &dst, Rule r) {
         for (int x = 0; x < src.at(t).cols; x++) {
             Color c = get_color(src, x, y, t);
             vector<Color> neighbors;
-            if (x-1 >= x_min) neighbors.push_back(get_color(src,x-1,y,t));
-            if (x+1 <= x_max) neighbors.push_back(get_color(src,x+1,y,t));
-            if (y-1 >= y_min) neighbors.push_back(get_color(src,x,y-1,t));
-            if (y+1 <= y_max) neighbors.push_back(get_color(src,x,y+1,t));
-            if (x-1 >= x_min && y-1 >= y_min) neighbors.push_back(get_color(src,x-1,y-1,t));
-            if (x+1 <= x_max && y-1 >= y_min) neighbors.push_back(get_color(src,x+1,y-1,t));
-            if (x-1 >= x_min && y+1 <= y_max) neighbors.push_back(get_color(src,x-1,y+1,t));
-            if (x+1 <= x_max && y+1 <= y_max) neighbors.push_back(get_color(src,x+1,y+1,t));
+            for (int dt = -1; dt <= 1; dt++) {
+                if (t+dt >= t_min && t+dt <= t_max) {
+                    if (x-1 >= x_min) neighbors.push_back(get_color(src,x-1,y,t+dt));
+                    if (x+1 <= x_max) neighbors.push_back(get_color(src,x+1,y,t+dt));
+                    if (y-1 >= y_min) neighbors.push_back(get_color(src,x,y-1,t+dt));
+                    if (y+1 <= y_max) neighbors.push_back(get_color(src,x,y+1,t+dt));
+                    if (x-1 >= x_min && y-1 >= y_min) neighbors.push_back(get_color(src,x-1,y-1,t+dt));
+                    if (x+1 <= x_max && y-1 >= y_min) neighbors.push_back(get_color(src,x+1,y-1,t+dt));
+                    if (x-1 >= x_min && y+1 <= y_max) neighbors.push_back(get_color(src,x-1,y+1,t+dt));
+                    if (x+1 <= x_max && y+1 <= y_max) neighbors.push_back(get_color(src,x+1,y+1,t+dt));
+                }
+            }
             set_color(dst, x, y, t, r(neighbors));
-            //set_color(dst, x, y, t, c);
         }
+        vw.write(dst.at(t));
         imshow("WINDOW", dst.at(t));
         if (waitKey(1) == '')
             return;
