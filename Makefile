@@ -1,4 +1,4 @@
-TARGET=video-automaton
+TARGET=video-automata
 CXX = g++
 CXXFLAGS = -Wall -Werror -std=c++11
 LIBS=opencv
