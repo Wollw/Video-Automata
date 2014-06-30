@@ -9,29 +9,18 @@
 using namespace std;
 using namespace cv;
 
-typedef struct {
-    uint8_t r;
-    uint8_t g;
-    uint8_t b;
-} Color;
+typedef Vec3b Color;
 typedef vector<Mat> World;
 typedef Color (*Rule)(const vector<Color> &);
 
 void set_color(World &w, int x, int y, int t, Color c) {
     Mat m = w.at(t);
-    Vec3b cvec;
-    m.at<Vec3b>(y,x)[0] = c.b;
-    m.at<Vec3b>(y,x)[1] = c.g;
-    m.at<Vec3b>(y,x)[2] = c.r;
+    m.at<Vec3b>(y,x) = c;
 }
 
 Color get_color(const World &w, int x, int y, int t) {
     Mat m = w.at(t);
-    Color c;
-    c.b = m.at<Vec3b>(y,x)[0];
-    c.g = m.at<Vec3b>(y,x)[1];
-    c.r = m.at<Vec3b>(y,x)[2];
-    return c;
+    return m.at<Vec3b>(y,x);
 }
 
 void update(World &src, World &dst, Rule r) {
@@ -65,15 +54,21 @@ void update(World &src, World &dst, Rule r) {
 }
 
 Color my_rule(const vector<Color> &cs) {
-    Color c = {0,0,0};
+    float r = 0;
+    float g = 0;
+    float b = 0;
     for (int i = 0; i < cs.size(); i++) {
-        c.r += cs[i].r;
-        c.g += cs[i].g;
-        c.b += cs[i].b;
+        r += cs[i][2];
+        g += cs[i][1];
+        b += cs[i][0];
     }
-    c.r /= cs.size();
-    c.g /= cs.size();
-    c.b /= cs.size();
+    r /= cs.size();
+    g /= cs.size();
+    b /= cs.size();
+    Color c;
+    c[0] = b;
+    c[1] = g;
+    c[2] = r;
     return c;
 }
 
