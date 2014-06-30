@@ -3,6 +3,8 @@
 #include <highgui.h>
 //#include <gflags/gflags.h>
 
+#define THREAD_COUNT 8
+
 using namespace std;
 using namespace cv;
 
@@ -91,8 +93,6 @@ void *update_thread(void *data) {
 
     return NULL;
 }
-
-#define THREAD_COUNT 4
 
 void update(World *src, World *dst, Rule r) {
     pthread_t threads[THREAD_COUNT];
