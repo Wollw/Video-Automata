@@ -170,8 +170,11 @@ int main(int argc, char **argv) {
 
     vector<Mat> *src = &framesFront;
     vector<Mat> *dst = &framesBack;
-    for (int i = 0; i < vc.get(CV_CAP_PROP_FRAME_COUNT); i++) {
-        cout << "Frame " << i;
+    cout << "Writing initial frame...";
+    vw.write(dst->at(0));
+    cout << "done." << endl;
+    for (int i = 1; i < vc.get(CV_CAP_PROP_FRAME_COUNT); i++) {
+        cout << "Frame " << i+1;
         update(src, dst, my_rule, tvalue);
         cout << "writing...";
         vw.write(dst->at(i));
