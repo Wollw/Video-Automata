@@ -25,20 +25,20 @@ Color my_rule(Color, const vector<Color> &);
 
 /*** Customize this rule ***/
 Color my_rule(Color c, const vector<Color> &cs) {
-    float r = 0;
-    float g = 0;
     float b = 0;
+    float g = 0;
+    float r = 0;
     for (int i = 0; i < (int)cs.size(); i++) {
-        r += cs[i][2];
-        g += cs[i][1];
         b += cs[i][0];
+        g += cs[i][1];
+        r += cs[i][2];
     }
     r /= cs.size();
     g /= cs.size();
     b /= cs.size();
-    c[0] = b;
-    c[1] = g;
-    c[2] = r;
+    c[0] = b-10;
+    c[1] = g-10;
+    c[2] = r-10;
     return c;
 }
 /***************************/
@@ -68,7 +68,7 @@ void *update_thread(void *data) {
     int t_max = src->size()-1;
     for (int t = d->thread_id; t < (int)src->size(); t+=d->thread_count) {
         cout << ".";
-        for (int y = 0; y < src->at(t).rows; y++)
+        for (int y = 0; y < src->at(t).rows; y++) {
         for (int x = 0; x < src->at(t).cols; x++) {
             Color c = get_color(*src, x, y, t);
             vector<Color> neighbors;
@@ -87,6 +87,7 @@ void *update_thread(void *data) {
             }
             set_color(*dst, x, y, t, r(c, neighbors));
         }
+        }
     }
 
     return NULL;
@@ -99,7 +100,7 @@ void update(World *src, World *dst, Rule r, unsigned int thread_count) {
 
     for (unsigned int i = 0; i < thread_count; i++) {
         data[i] = thread_data{i, thread_count, src, dst, my_rule};
-        irets[i] = pthread_create(&threads[i], NULL, update_thread, &data);
+        irets[i] = pthread_create(&threads[i], NULL, update_thread, &data[i]);
         if (irets[i]) {
             fprintf(stderr,"Error - pthread_create() return code: %d\n",irets[i]);
             exit(EXIT_FAILURE);
@@ -165,7 +166,7 @@ int main(int argc, char **argv) {
 
     VideoWriter vw;
     int ex = CV_FOURCC('I', 'Y', 'U', 'V');
-    vw.open("out.avi", ex, vc.get(CV_CAP_PROP_FPS), f.size());
+    vw.open(argv[optind], ex, vc.get(CV_CAP_PROP_FPS), f.size());
 
     vector<Mat> *src = &framesFront;
     vector<Mat> *dst = &framesBack;
