@@ -33,9 +33,9 @@ Color my_rule(Color c, const vector<Color> &cs) {
         g += cs[i][1];
         b += cs[i][0];
     }
-    r /= cs.size()-1;
-    g /= cs.size()-1;
-    b /= cs.size()-1;
+    r /= cs.size();
+    g /= cs.size();
+    b /= cs.size();
     c[0] = b;
     c[1] = g;
     c[2] = r;
