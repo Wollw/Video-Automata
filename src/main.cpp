@@ -82,6 +82,7 @@ void *update_thread(void *data) {
                     if (x+1 <= x_max && y-1 >= y_min) neighbors.push_back(get_color(*src,x+1,y-1,t+dt));
                     if (x-1 >= x_min && y+1 <= y_max) neighbors.push_back(get_color(*src,x-1,y+1,t+dt));
                     if (x+1 <= x_max && y+1 <= y_max) neighbors.push_back(get_color(*src,x+1,y+1,t+dt));
+                    if (dt != 0) neighbors.push_back(get_color(*src,x,y,t+dt));
                 }
             }
             set_color(*dst, x, y, t, r(c, neighbors));
