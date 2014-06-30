@@ -172,9 +172,9 @@ int main(int argc, char **argv) {
     for (int i = 0; i < vc.get(CV_CAP_PROP_FRAME_COUNT); i++) {
         cout << "Frame " << i;
         update(src, dst, my_rule, tvalue);
-        swap(src, dst);
         cout << "writing...";
         vw.write(dst->at(i));
+        swap(src, dst);
         cout << "done." << endl;
     }
 
