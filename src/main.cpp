@@ -23,41 +23,41 @@ Color get_color(const World &w, int x, int y, int t) {
     return m.at<Vec3b>(y,x);
 }
 
-void update(World &src, World &dst, Rule r) {
+void update(World &w1, World &w2, Rule r) {
     VideoWriter vw;
     int ex = CV_FOURCC('I', 'Y', 'U', 'V');
-    vw.open("out.avi", ex, 24, src.at(0).size());
+    vw.open("out.avi", ex, 24, w1.at(0).size());
+    World *src = &w1;
+    World *dst = &w2;
 
     int x_min = 0;
     int y_min = 0;
     int t_min = 0;
-    int x_max = src.at(0).cols-1;
-    int y_max = src.at(0).rows-1;
-    int t_max = src.size()-1;
-    for (int t = 0; t < src.size(); t++) {
+    int x_max = src->at(0).cols-1;
+    int y_max = src->at(0).rows-1;
+    int t_max = src->size()-1;
+    for (int t = 0; t < src->size(); t++) {
         cout << "Frame " << t << "..." << endl;
-        for (int y = 0; y < src.at(t).rows; y++)
-        for (int x = 0; x < src.at(t).cols; x++) {
-            Color c = get_color(src, x, y, t);
+        for (int y = 0; y < src->at(t).rows; y++)
+        for (int x = 0; x < src->at(t).cols; x++) {
+            Color c = get_color(*src, x, y, t);
             vector<Color> neighbors;
             for (int dt = -1; dt <= 1; dt++) {
                 if (t+dt >= t_min && t+dt <= t_max) {
-                    if (x-1 >= x_min) neighbors.push_back(get_color(src,x-1,y,t+dt));
-                    if (x+1 <= x_max) neighbors.push_back(get_color(src,x+1,y,t+dt));
-                    if (y-1 >= y_min) neighbors.push_back(get_color(src,x,y-1,t+dt));
-                    if (y+1 <= y_max) neighbors.push_back(get_color(src,x,y+1,t+dt));
-                    if (x-1 >= x_min && y-1 >= y_min) neighbors.push_back(get_color(src,x-1,y-1,t+dt));
-                    if (x+1 <= x_max && y-1 >= y_min) neighbors.push_back(get_color(src,x+1,y-1,t+dt));
-                    if (x-1 >= x_min && y+1 <= y_max) neighbors.push_back(get_color(src,x-1,y+1,t+dt));
-                    if (x+1 <= x_max && y+1 <= y_max) neighbors.push_back(get_color(src,x+1,y+1,t+dt));
+                    if (x-1 >= x_min) neighbors.push_back(get_color(*src,x-1,y,t+dt));
+                    if (x+1 <= x_max) neighbors.push_back(get_color(*src,x+1,y,t+dt));
+                    if (y-1 >= y_min) neighbors.push_back(get_color(*src,x,y-1,t+dt));
+                    if (y+1 <= y_max) neighbors.push_back(get_color(*src,x,y+1,t+dt));
+                    if (x-1 >= x_min && y-1 >= y_min) neighbors.push_back(get_color(*src,x-1,y-1,t+dt));
+                    if (x+1 <= x_max && y-1 >= y_min) neighbors.push_back(get_color(*src,x+1,y-1,t+dt));
+                    if (x-1 >= x_min && y+1 <= y_max) neighbors.push_back(get_color(*src,x-1,y+1,t+dt));
+                    if (x+1 <= x_max && y+1 <= y_max) neighbors.push_back(get_color(*src,x+1,y+1,t+dt));
                 }
             }
-            set_color(dst, x, y, t, r(neighbors));
+            set_color(*dst, x, y, t, r(neighbors));
         }
-        vw.write(dst.at(t));
-        imshow("WINDOW", dst.at(t));
-        if (waitKey(1) == '')
-            return;
+        vw.write(dst->at(t));
+        swap(src, dst);
     }
 }
 
@@ -96,14 +96,6 @@ int main(int argc, char **argv) {
     }
 
     update(framesFront, framesBack, my_rule);
-
-    namedWindow("WINDOW", CV_WINDOW_NORMAL);
-    setWindowProperty("WINDOW", CV_WND_PROP_FULLSCREEN, CV_WINDOW_FULLSCREEN);
-    for (int i = 0; i < framesBack.size(); i++) {
-        imshow("WINDOW", framesBack.at(i));
-        if (waitKey(1) == '')
-            return 0;
-    }
 
     return 0;
 }
