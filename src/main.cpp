@@ -12,6 +12,20 @@ using namespace cv;
 typedef Vec3b Color;
 typedef vector<Mat> World;
 typedef Color (*Rule)(const vector<Color> &);
+typedef struct {
+    unsigned int thread_id;
+    unsigned int thread_count;
+    World *src;
+    World *dst;
+    Rule r;
+} thread_data;
+
+void set_color(World &w, int x, int y, int t, Color c);
+Color get_color(const World &w, int x, int y, int t);
+Color my_rule(const vector<Color> &cs);
+void *update_thread(void *data);
+void update(World *src, World *dst, Rule r);
+Color my_rule(const vector<Color> &cs);
 
 void set_color(World &w, int x, int y, int t, Color c) {
     Mat m = w.at(t);
@@ -23,14 +37,21 @@ Color get_color(const World &w, int x, int y, int t) {
     return m.at<Vec3b>(y,x);
 }
 
-void update(World *src, World *dst, Rule r) {
+
+void *update_thread(void *data) {
+    thread_data *d = (thread_data*)data;
+
+    World *src = d->src;
+    World *dst = d->dst;
+    Rule r = d->r;
+
     int x_min = 0;
     int y_min = 0;
     int t_min = 0;
     int x_max = src->at(0).cols-1;
     int y_max = src->at(0).rows-1;
     int t_max = src->size()-1;
-    for (int t = 0; t < src->size(); t++) {
+    for (int t = d->thread_id; t < src->size(); t+=d->thread_count) {
         cout << ".";
         for (int y = 0; y < src->at(t).rows; y++)
         for (int x = 0; x < src->at(t).cols; x++) {
@@ -50,6 +71,29 @@ void update(World *src, World *dst, Rule r) {
             }
             set_color(*dst, x, y, t, r(neighbors));
         }
+    }
+
+    return NULL;
+}
+
+
+#define THREAD_COUNT 4
+void update(World *src, World *dst, Rule r) {
+    pthread_t threads[THREAD_COUNT];
+    int irets[THREAD_COUNT];
+    thread_data data[THREAD_COUNT];
+
+    for (int i = 0; i < THREAD_COUNT; i++) {
+        data[i] = thread_data{i,THREAD_COUNT,src,dst,my_rule};
+        irets[i] = pthread_create(&threads[i], NULL, update_thread, &data);
+        if (irets[i]) {
+            fprintf(stderr,"Error - pthread_create() return code: %d\n",irets[i]);
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    for (int i = 0; i < THREAD_COUNT; i++) {
+        pthread_join(threads[i], NULL);
     }
 }
 
@@ -74,6 +118,7 @@ Color my_rule(const vector<Color> &cs) {
 
 int main(int argc, char **argv) {
     setbuf(stdout, NULL);
+
 
     VideoCapture vc = VideoCapture(argv[1]);
     if (!vc.isOpened())
