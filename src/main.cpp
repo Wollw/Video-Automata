@@ -142,7 +142,7 @@ int main(int argc, char **argv) {
         }
     }
 
-    cout << argc - optind<< endl;
+    cout << argc - optind << endl;
     char usage[] = "usage: %s -i inputfile [-t threadcount] outputfile\n";
     if (ivalue == NULL || argc - optind != 1) {
         fprintf(stderr, usage, argv[0]);
@@ -170,7 +170,7 @@ int main(int argc, char **argv) {
 
     vector<Mat> *src = &framesFront;
     vector<Mat> *dst = &framesBack;
-    cout << "Writing initial frame...";
+    cout << "Frame 1...";
     vw.write(dst->at(0));
     cout << "done." << endl;
     for (int i = 1; i < vc.get(CV_CAP_PROP_FRAME_COUNT); i++) {
