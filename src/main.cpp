@@ -1,9 +1,7 @@
 #include <iostream>
 #include <cv.h>
 #include <highgui.h>
-//#include <gflags/gflags.h>
-
-#define THREAD_COUNT 8
+#include <unistd.h>
 
 using namespace std;
 using namespace cv;
@@ -22,7 +20,7 @@ typedef struct {
 void set_color(World &, int x, int y, int t, Color);
 Color get_color(const World &, int x, int y, int t);
 void *update_thread(void *);
-void update(World *src, World *dst, Rule);
+void update(World *src, World *dst, Rule, unsigned int thread_count);
 Color my_rule(Color, const vector<Color> &);
 
 /*** Customize this rule ***/
@@ -94,13 +92,13 @@ void *update_thread(void *data) {
     return NULL;
 }
 
-void update(World *src, World *dst, Rule r) {
-    pthread_t threads[THREAD_COUNT];
-    int irets[THREAD_COUNT];
-    thread_data data[THREAD_COUNT];
+void update(World *src, World *dst, Rule r, unsigned int thread_count) {
+    pthread_t threads[thread_count];
+    int irets[thread_count];
+    thread_data data[thread_count];
 
-    for (unsigned int i = 0; i < THREAD_COUNT; i++) {
-        data[i] = thread_data{i, THREAD_COUNT, src, dst, my_rule};
+    for (unsigned int i = 0; i < thread_count; i++) {
+        data[i] = thread_data{i, thread_count, src, dst, my_rule};
         irets[i] = pthread_create(&threads[i], NULL, update_thread, &data);
         if (irets[i]) {
             fprintf(stderr,"Error - pthread_create() return code: %d\n",irets[i]);
@@ -108,7 +106,7 @@ void update(World *src, World *dst, Rule r) {
         }
     }
 
-    for (int i = 0; i < THREAD_COUNT; i++) {
+    for (unsigned int i = 0; i < thread_count; i++) {
         pthread_join(threads[i], NULL);
     }
 }
@@ -116,7 +114,42 @@ void update(World *src, World *dst, Rule r) {
 int main(int argc, char **argv) {
     setbuf(stdout, NULL);
 
-    VideoCapture vc = VideoCapture(argv[1]);
+    int tvalue  = 1;
+    char *ivalue = NULL;
+    int c;
+    opterr = 0;
+    while ((c = getopt(argc, argv, "t:i:")) != -1) {
+        switch (c) {
+            case 't':
+                tvalue = atoi(optarg);
+                break;
+            case 'i':
+                ivalue = optarg;
+                break;
+            case '?':
+                if (optopt == 'i')
+                    fprintf(stderr, "Option -%c requires an argument.\n", optopt);
+                else if(isprint(optopt))
+                    fprintf(stderr, "Unknown option `-%c'.\n", optopt);
+                else
+                    fprintf(stderr,
+                            "Unknown option character `\\x%x'.\n",
+                            optopt);
+                return 1;
+            default:
+                abort();
+        }
+    }
+
+    cout << argc - optind<< endl;
+    char usage[] = "usage: %s -i inputfile [-t threadcount] outputfile\n";
+    if (ivalue == NULL || argc - optind != 1) {
+        fprintf(stderr, usage, argv[0]);
+        return 1;
+    }
+
+
+    VideoCapture vc = VideoCapture(ivalue);
     if (!vc.isOpened())
         return 1;
 
@@ -138,7 +171,7 @@ int main(int argc, char **argv) {
     vector<Mat> *dst = &framesBack;
     for (int i = 0; i < vc.get(CV_CAP_PROP_FRAME_COUNT); i++) {
         cout << "Frame " << i;
-        update(src, dst, my_rule);
+        update(src, dst, my_rule, tvalue);
         swap(src, dst);
         cout << "writing...";
         vw.write(dst->at(i));
