@@ -10,7 +10,7 @@ using namespace cv;
 
 typedef Vec3b Color;
 typedef vector<Mat> World;
-typedef Color (*Rule)(Color c, const vector<Color> &);
+typedef Color (*Rule)(Color, const vector<Color> &);
 typedef struct {
     unsigned int thread_id;
     unsigned int thread_count;
@@ -19,11 +19,11 @@ typedef struct {
     Rule r;
 } thread_data;
 
-void set_color(World &w, int x, int y, int t, Color c);
-Color get_color(const World &w, int x, int y, int t);
-void *update_thread(void *data);
-void update(World *src, World *dst, Rule r);
-Color my_rule(Color c, const vector<Color> &ns);
+void set_color(World &, int x, int y, int t, Color);
+Color get_color(const World &, int x, int y, int t);
+void *update_thread(void *);
+void update(World *src, World *dst, Rule);
+Color my_rule(Color, const vector<Color> &);
 
 /*** Customize this rule ***/
 Color my_rule(Color c, const vector<Color> &cs) {
