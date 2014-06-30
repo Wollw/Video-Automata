@@ -66,9 +66,9 @@ Color my_rule(const vector<Color> &cs) {
     g /= cs.size();
     b /= cs.size();
     Color c;
-    c[0] = b - 100 < 0 ? 0 : b - 100;
-    c[1] = g - 100 < 0 ? 0 : g - 100;
-    c[2] = r - 100 < 0 ? 0 : r - 100;
+    c[0] = b;
+    c[1] = g;
+    c[2] = r;
     return c;
 }
 
