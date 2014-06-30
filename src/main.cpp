@@ -23,13 +23,7 @@ Color get_color(const World &w, int x, int y, int t) {
     return m.at<Vec3b>(y,x);
 }
 
-void update(World &w1, World &w2, Rule r) {
-    VideoWriter vw;
-    int ex = CV_FOURCC('I', 'Y', 'U', 'V');
-    vw.open("out.avi", ex, 24, w1.at(0).size());
-    World *src = &w1;
-    World *dst = &w2;
-
+void update(World *src, World *dst, Rule r) {
     int x_min = 0;
     int y_min = 0;
     int t_min = 0;
@@ -37,7 +31,7 @@ void update(World &w1, World &w2, Rule r) {
     int y_max = src->at(0).rows-1;
     int t_max = src->size()-1;
     for (int t = 0; t < src->size(); t++) {
-        cout << "Frame " << t << "..." << endl;
+        cout << ".";
         for (int y = 0; y < src->at(t).rows; y++)
         for (int x = 0; x < src->at(t).cols; x++) {
             Color c = get_color(*src, x, y, t);
@@ -56,8 +50,6 @@ void update(World &w1, World &w2, Rule r) {
             }
             set_color(*dst, x, y, t, r(neighbors));
         }
-        vw.write(dst->at(t));
-        swap(src, dst);
     }
 }
 
@@ -74,13 +66,15 @@ Color my_rule(const vector<Color> &cs) {
     g /= cs.size();
     b /= cs.size();
     Color c;
-    c[0] = b;
-    c[1] = g;
-    c[2] = r;
+    c[0] = b - 100 < 0 ? 0 : b - 100;
+    c[1] = g - 100 < 0 ? 0 : g - 100;
+    c[2] = r - 100 < 0 ? 0 : r - 100;
     return c;
 }
 
 int main(int argc, char **argv) {
+    setbuf(stdout, NULL);
+
     VideoCapture vc = VideoCapture(argv[1]);
     if (!vc.isOpened())
         return 1;
@@ -95,7 +89,20 @@ int main(int argc, char **argv) {
         framesBack.push_back(f.clone());
     }
 
-    update(framesFront, framesBack, my_rule);
+    VideoWriter vw;
+    int ex = CV_FOURCC('I', 'Y', 'U', 'V');
+    vw.open("out.avi", ex, vc.get(CV_CAP_PROP_FPS), f.size());
+
+    vector<Mat> *src = &framesFront;
+    vector<Mat> *dst = &framesBack;
+    for (int i = 0; i < vc.get(CV_CAP_PROP_FRAME_COUNT); i++) {
+        cout << "Frame " << i;
+        update(src, dst, my_rule);
+        swap(src, dst);
+        cout << "writing...";
+        vw.write(dst->at(i));
+        cout << "done." << endl;
+    }
 
     return 0;
 }
