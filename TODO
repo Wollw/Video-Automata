@@ -1,0 +1,4 @@
+* Convert into a library or framework.
+* Embed a language for dynamically programming rules.
+* Implement a staggered update option that would speed things up
+  but also produce different kinds of results.
