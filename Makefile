@@ -1,7 +1,7 @@
 TARGET=video-automaton
 CXX = g++
 CXXFLAGS = -Wall -Werror -std=c++11
-LIBS=opencv libgflags
+LIBS=opencv
 
 all:
 	g++ $(CXXFLAGS) src/main.cpp -o bin/$(TARGET) `pkg-config $(LIBS) --libs --cflags`
