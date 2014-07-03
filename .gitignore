@@ -2,4 +2,5 @@ bin
 *.mp4
 *.avi
 *.mkv
+*.webm
 test-files

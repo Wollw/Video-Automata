@@ -2,6 +2,7 @@
 #include <cv.h>
 #include <highgui.h>
 #include <unistd.h>
+#include <cmath>
 
 using namespace std;
 using namespace cv;
@@ -24,21 +25,37 @@ void update(World *src, World *dst, Rule, unsigned int thread_count);
 Color my_rule(Color, const vector<Color> &);
 
 /*** Customize this rule ***/
+#define DELTA   1
 Color my_rule(Color c, const vector<Color> &cs) {
-    float b = 0;
-    float g = 0;
-    float r = 0;
-    for (int i = 0; i < (int)cs.size(); i++) {
-        b += cs[i][0];
-        g += cs[i][1];
-        r += cs[i][2];
+    int largers[3];
+    int diffs[3];
+    for (int j = 0; j < 3; j++) {
+        largers[j] = 0;
+        diffs[j] = 0;
+        for (unsigned int i = 0; i < cs.size(); i++) {
+            float n = cs[i][0] + cs[i][1] + cs[i][2];
+            largers[j]  += cs[i][j] >  c[j] ? 1 : 0;
+            diffs[j] += cs[i][j] == c[j] ? 0 : n > c[j] ? 1 : -1;
+        }
     }
-    r /= cs.size();
-    g /= cs.size();
-    b /= cs.size();
-    c[0] = b;
-    c[1] = g;
-    c[2] = r;
+
+    for (int j = 0; j < 3; j++) {
+        if (diffs[j] > 0) switch (largers[j]) {
+                case 2:
+                case 3:
+                    c[j] = c[j] + DELTA > 255 ? 255 : c[j] + DELTA;
+                    break;
+                default:
+                    c[j] = c[j] - DELTA < 0 ? 0 : c[j] - DELTA;
+            }
+        else switch (largers[j]) {
+                case 3:
+                    c[j] = c[j] + DELTA > 255 ? 255 : c[j] + DELTA;
+                    break;
+                default:
+                    c[j] = c[j] - DELTA < 0 ? 0 : c[j] - DELTA;
+            }
+    }
     return c;
 }
 /***************************/
