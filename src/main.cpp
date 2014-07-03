@@ -84,7 +84,6 @@ void *update_thread(void *data) {
     int y_max = src->at(0).rows-1;
     int t_max = src->size()-1;
     for (int t = d->thread_id; t < (int)src->size(); t+=d->thread_count) {
-        cout << ".";
         for (int y = 0; y < src->at(t).rows; y++) {
         for (int x = 0; x < src->at(t).cols; x++) {
             Color c = get_color(*src, x, y, t);
@@ -105,6 +104,7 @@ void *update_thread(void *data) {
             set_color(*dst, x, y, t, r(c, neighbors));
         }
         }
+        cout << ".";
     }
 
     return NULL;
